@@ -1,0 +1,5 @@
+.env
+lib
+/python
+/__pycache__
+lambda_handler.zip

@@ -1,0 +1,6 @@
+boto3
+uvicorn
+python-dotenv
+pydantic
+requests
+pytz
