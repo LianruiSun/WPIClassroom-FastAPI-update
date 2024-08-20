@@ -47,6 +47,10 @@ def ensure_table(device_id, date_str):
     return table
 
 
+def round_value(value, decimal_places=2):
+    return round(Decimal(value), decimal_places)
+
+
 def get_air_data(device_id):
     url = f"{base_url}/awair-omni/{device_id}/air-data/latest"
     response = requests.get(url, headers=headers)
@@ -56,29 +60,29 @@ def get_air_data(device_id):
             print(f"No data available for device {device_id}\n")
         else:
             record = data["data"][0]
-            # Convert timestamp to America/New_York timezone
+            # Convert timestamp to America/New_York timezone and round to nearest minute
             utc_time = datetime.strptime(record["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ")
             eastern = timezone("America/New_York")
             local_time = utc_time.replace(tzinfo=timezone("UTC")).astimezone(eastern)
-            formatted_time = local_time.strftime("%Y-%m-%d %H:%M:%S")
+            formatted_time = local_time.strftime("%Y-%m-%d %H:%M")
+
             sensors = record["sensors"]
             sensor_dict = {sensor["comp"]: sensor["value"] for sensor in sensors}
 
             # Create item dictionary to store in DynamoDB
             sensor_item = {
                 "timestamp": formatted_time,
-                "pm10": Decimal(str(sensor_dict.get("pm10_est", 0))),
-                "score": Decimal(str(sensor_dict.get("score", 0))),
-                "temp": Decimal(
-                    str(convert_celsius_to_fahrenheit(sensor_dict.get("temp", 0)))
-                ),
-                "humid": Decimal(str(sensor_dict.get("humid", 0))),
-                "co2": Decimal(str(sensor_dict.get("co2", 0))),
-                "voc": Decimal(str(sensor_dict.get("voc", 0))),
-                "pm25": Decimal(str(sensor_dict.get("pm25", 0))),
-                "noise": Decimal(str(sensor_dict.get("spl_a", 0))),
-                "light": Decimal(str(sensor_dict.get("lux", 0))),
+                "pm10": round_value(sensor_dict.get("pm10_est", 0)),
+                "score": round_value(sensor_dict.get("score", 0)),
+                "temp": round_value(convert_celsius_to_fahrenheit(sensor_dict.get("temp", 0))),
+                "humid": round_value(sensor_dict.get("humid", 0)),
+                "co2": round_value(sensor_dict.get("co2", 0)),
+                "voc": round_value(sensor_dict.get("voc", 0)),
+                "pm25": round_value(sensor_dict.get("pm25", 0)),
+                "noise": round_value(sensor_dict.get("spl_a", 0)),
+                "light": round_value(sensor_dict.get("lux", 0)),
             }
+
             table = ensure_table(
                 device_id, formatted_time.split(" ")[0].replace("-", "_")
             )
