@@ -72,7 +72,6 @@ def get_air_data(device_id):
             # Create item dictionary to store in DynamoDB
             sensor_item = {
                 "timestamp": formatted_time,
-                "pm10": round_value(sensor_dict.get("pm10_est", 0)),
                 "score": round_value(sensor_dict.get("score", 0)),
                 "temp": round_value(convert_celsius_to_fahrenheit(sensor_dict.get("temp", 0))),
                 "humid": round_value(sensor_dict.get("humid", 0)),
